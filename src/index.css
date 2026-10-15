@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+  
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
+  }
+
+  body {
+    background-color: #07090B;
+    color: #F5F5F5;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #07090B;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1B222C;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #168CFF;
+  }
+}
+
+/* Technical typography & accents */
+.font-display {
+  font-family: 'Syne', 'Inter', sans-serif;
+}
+
+.font-mono-tech {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Engineering blueprint subtle lines */
+.bg-grid-pattern {
+  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 50%, rgba(22, 140, 255, 0.05) 0%, transparent 70%);
+}
+
+/* Glow effects */
+.glow-blue {
+  box-shadow: 0 0 35px -5px rgba(22, 140, 255, 0.35);
+}
+
+.glow-orange {
+  box-shadow: 0 0 35px -5px rgba(255, 122, 24, 0.35);
+}
