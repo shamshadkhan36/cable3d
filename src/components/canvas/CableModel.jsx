@@ -50,36 +50,41 @@ export function CableModel({ scrollProgress = 0, onUpdateLabels, activeLayerId, 
           mat.envMapIntensity = 1.4;
 
           if (name.includes('01_Outer_Sheath') || name.includes('01A_Sheath_Cut_Rim')) {
-            mat.roughness = 0.32;
-            mat.metalness = 0.25;
-            mat.color = new THREE.Color('#14181E');
-          } else if (name.includes('05_Armour') || name.includes('05A_Armour')) {
-            mat.roughness = 0.18;
-            mat.metalness = 0.96;
-            mat.color = new THREE.Color('#94A3B8');
-          } else if (name.includes('02_Bedding') || name.includes('03_Insulation_Tape')) {
-            mat.roughness = 0.45;
-            mat.metalness = 0.12;
-          } else if (name.includes('04_Inner_Sheath')) {
             mat.roughness = 0.35;
-            mat.metalness = 0.3;
-            mat.color = new THREE.Color('#1E2530');
-          } else if (name.includes('06_Core_Blue')) {
-            mat.roughness = 0.22;
-            mat.metalness = 0.15;
-            mat.color = new THREE.Color('#0D47A1');
-          } else if (name.includes('07_Core_Black')) {
-            mat.roughness = 0.26;
-            mat.metalness = 0.2;
-            mat.color = new THREE.Color('#111317');
-          } else if (name.includes('08_Core_White')) {
-            mat.roughness = 0.24;
-            mat.metalness = 0.08;
-            mat.color = new THREE.Color('#E2E8F0');
-          } else if (name.includes('09_Copper')) {
-            mat.roughness = 0.16;
+            mat.metalness = 0.18;
+            mat.color = new THREE.Color('#101418');
+          } else if (name.includes('05_Armour') || name.includes('05A_Armour')) {
+            mat.roughness = 0.14;
             mat.metalness = 0.98;
-            mat.color = new THREE.Color('#E06928');
+            mat.color = new THREE.Color('#CBD5E1');
+          } else if (name.includes('03_Insulation_Tape')) {
+            mat.roughness = 0.32;
+            mat.metalness = 0.20;
+            mat.color = new THREE.Color('#E2E8F0');
+          } else if (name.includes('02_Bedding')) {
+            mat.roughness = 0.35;
+            mat.metalness = 0.28;
+            mat.color = new THREE.Color('#181E26');
+          } else if (name.includes('04_Inner_Sheath')) {
+            mat.roughness = 0.30;
+            mat.metalness = 0.32;
+            mat.color = new THREE.Color('#161C24');
+          } else if (name.includes('06_Core_Blue')) {
+            mat.roughness = 0.20;
+            mat.metalness = 0.15;
+            mat.color = new THREE.Color('#0A60FF');
+          } else if (name.includes('07_Core_Black')) {
+            mat.roughness = 0.25;
+            mat.metalness = 0.22;
+            mat.color = new THREE.Color('#15181E');
+          } else if (name.includes('08_Core_White')) {
+            mat.roughness = 0.22;
+            mat.metalness = 0.12;
+            mat.color = new THREE.Color('#ECEFF1');
+          } else if (name.includes('09_Copper')) {
+            mat.roughness = 0.15;
+            mat.metalness = 0.98;
+            mat.color = new THREE.Color('#E8722E');
           }
 
           child.material = mat;

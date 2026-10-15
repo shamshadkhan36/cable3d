@@ -52,43 +52,43 @@ export function CableScene({
         }}
         className="touch-none"
       >
-        {/* Cinematic Dual Industrial Lighting Setup */}
+        {/* Cinematic Dual Industrial Lighting Setup matching product.png */}
         {/* Soft dark ambient fill */}
-        <ambientLight intensity={0.8} color="#0E131B" />
+        <ambientLight intensity={0.75} color="#080C12" />
 
-        {/* Dramatic Electric Blue Rim Light (Left / Top-back) */}
+        {/* Dramatic Electric Blue Top Rim Light */}
         <directionalLight
-          position={[-9, 7, -5]}
-          intensity={5.8}
-          color="#168CFF"
+          position={[-4, 8, -2]}
+          intensity={7.2}
+          color="#0099FF"
         />
         <pointLight
-          position={[-6, 3, 2]}
-          intensity={2.8}
+          position={[-3, 4, 1]}
+          intensity={3.2}
           color="#38BDF8"
+          distance={18}
+          decay={2}
+        />
+
+        {/* Warm Glowing Industrial Orange Bottom Rim Light */}
+        <directionalLight
+          position={[2, -6, 3]}
+          intensity={6.5}
+          color="#FF7A18"
+        />
+        <pointLight
+          position={[3, -3, 3]}
+          intensity={3.8}
+          color="#FB923C"
           distance={16}
           decay={2}
         />
 
-        {/* Warm Industrial Orange Rim Light (Right / Bottom-front) */}
+        {/* Neutral Overhead Key Light for metallic speculars */}
         <directionalLight
-          position={[9, -3, 5]}
-          intensity={4.4}
-          color="#FF7A18"
-        />
-        <pointLight
-          position={[6, -2, 4]}
-          intensity={3.2}
-          color="#FB923C"
-          distance={15}
-          decay={2}
-        />
-
-        {/* Overhead Technical Key Light */}
-        <directionalLight
-          position={[1, 9, 7]}
-          intensity={2.0}
-          color="#E2E8F0"
+          position={[2, 6, 7]}
+          intensity={2.4}
+          color="#F1F5F9"
         />
 
         {/* Camera movement controller */}

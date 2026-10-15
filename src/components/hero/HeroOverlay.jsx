@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowDown, Play, Pause, RotateCcw, Zap, Layers, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowDown, Play, Pause, RotateCcw, Zap, Layers, Sparkles, Image, X } from 'lucide-react';
 
 export function HeroOverlay({
   scrollProgress = 0,
@@ -10,6 +10,8 @@ export function HeroOverlay({
   onScrubState,
   onSliderChange
 }) {
+  const [showRefImage, setShowRefImage] = useState(false);
+
   // Fade out large title as user begins scrolling into exploded states
   const titleOpacity = Math.max(0, 1 - scrollProgress * 2.8);
 
@@ -32,6 +34,30 @@ export function HeroOverlay({
 
   return (
     <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-between p-6 sm:p-10 md:p-14 overflow-hidden select-none">
+      {/* Target Reference Image Flyout */}
+      {showRefImage && (
+        <div className="absolute top-20 right-8 z-50 pointer-events-auto bg-[#0D1219]/95 border border-[#168CFF] p-3 shadow-2xl max-w-sm sm:max-w-md animate-in fade-in duration-200">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1E2633]">
+            <span className="text-[10px] font-mono-tech text-[#168CFF] font-bold uppercase tracking-wider">
+              TARGET REFERENCE PHOTOGRAPH (product.png)
+            </span>
+            <button
+              onClick={() => setShowRefImage(false)}
+              className="text-[#9CA3AF] hover:text-white p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <img
+            src="/product.png"
+            alt="Reference Cable"
+            className="w-full h-auto object-cover border border-[#1E2633]"
+          />
+          <p className="mt-2 text-[10px] text-[#9CA3AF] font-mono-tech">
+            Exact match: 3-Core Cutaway (Blue, Black, White XLPE cores, 57 Cu strands, braided steel armour, and extruded sheath).
+          </p>
+        </div>
+      )}
       {/* Top Telemetry & Control Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-opacity duration-300 pointer-events-auto">
         <div className="flex items-center gap-3">
@@ -91,6 +117,20 @@ export function HeroOverlay({
                 <span>AUTO PLAY</span>
               </>
             )}
+          </button>
+
+          {/* Reference Photo Toggle Button */}
+          <button
+            onClick={() => setShowRefImage(!showRefImage)}
+            className={`px-3 py-1.5 border font-mono-tech text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 backdrop-blur-sm ${
+              showRefImage
+                ? 'bg-[#168CFF]/20 border-[#168CFF] text-[#168CFF]'
+                : 'bg-[#0D1219]/90 border-[#2A3644] text-[#9CA3AF] hover:text-white hover:border-[#168CFF]'
+            }`}
+            title="Compare with target product.png"
+          >
+            <Image className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">REF PHOTO</span>
           </button>
         </div>
       </div>

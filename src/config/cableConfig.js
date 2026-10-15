@@ -126,12 +126,12 @@ export const ANIMATION_CONFIG = {
   copperAxialOffset: 0.95,
   copperFlareScale: 1.12,
 
-  // Global rotation and camera adjustments across scroll
-  initialRotation: [0.15, -0.45, 0.05],
-  explodedRotation: [0.32, -0.85, 0.12],
+  // Global rotation matching product.png reference
+  initialRotation: [0.20, -0.48, -0.16],
+  explodedRotation: [0.28, -0.72, 0.04],
 
   // Camera settings
-  cameraInitial: { x: 0, y: 1.2, z: 8.5 },
-  cameraZoomed: { x: 1.0, y: 0.8, z: 6.2 },
-  cameraExploded: { x: 1.2, y: 0.6, z: 7.2 }
+  cameraInitial: { x: -0.2, y: 0.8, z: 8.2 },
+  cameraZoomed: { x: 0.5, y: 0.6, z: 6.8 },
+  cameraExploded: { x: 0.8, y: 0.5, z: 7.4 }
 };
