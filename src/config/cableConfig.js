@@ -1,5 +1,5 @@
 /**
- * Engineering specifications & 3D animation configuration
+ * Engineering specifications & 3D cinematic animation configuration
  * for Nexor Industrial Cable System
  */
 
@@ -9,13 +9,14 @@ export const CABLE_LAYERS = [
   {
     id: '01',
     number: '01',
-    name: 'OUTER SHEATH',
+    name: 'OUTER JACKET',
+    shortName: 'JACKET',
     material: 'High-Density LSOH Polyethylene',
     thickness: '3.2 mm',
     temperature: '-40°C to +90°C',
     color: '#1E252D',
     accentColor: '#168CFF',
-    description: 'Heavy-duty extruded thermoplastic sheath engineered for high mechanical impact, UV weathering, and chemical resistance.',
+    description: 'Heavy-duty extruded thermoplastic sheath engineered for mechanical impact, UV weathering, and chemical resistance.',
     specs: ['Impact Resistance: Class AG4', 'Halogen Free: IEC 60754-1', 'Flame Retardant: IEC 60332-3-24'],
     targetMesh: '01_Outer_Sheath',
     worldAnchor: [-2.5, 1.8, 0],
@@ -24,7 +25,8 @@ export const CABLE_LAYERS = [
   {
     id: '02',
     number: '02',
-    name: 'METALLIC ARMOUR',
+    name: 'METALLIC BRAID / SHIELD',
+    shortName: 'ARMOUR',
     material: 'Galvanized Steel Wire Braid (GSWB)',
     coverage: '> 92% optical density',
     tensile: '1,450 N/mm²',
@@ -39,7 +41,8 @@ export const CABLE_LAYERS = [
   {
     id: '03',
     number: '03',
-    name: 'INSULATION LAYER',
+    name: 'INTERNAL INSULATION',
+    shortName: 'BEDDING & TAPE',
     material: 'Semi-Conductive Water-Blocking Tape & Bedding',
     dielectric: 'Extruded PVC/LSOH Bedding',
     waterResist: 'Longitudinal water barrier',
@@ -54,23 +57,10 @@ export const CABLE_LAYERS = [
   {
     id: '04',
     number: '04',
-    name: 'INNER SHEATH',
-    material: 'Hydrocarbon & Chemical Impermeable Polymer',
-    dielectric: '2.4 mm extruded',
-    color: '#1F2937',
-    accentColor: '#168CFF',
-    description: 'Primary radial chemical barrier preventing hydrocarbon migration and providing smooth cylindrical bedding over three-core bundle.',
-    specs: ['Permeation Index: Class 0', 'Continuous Rating: 90°C'],
-    targetMesh: '04_Inner_Sheath',
-    worldAnchor: [1.5, 1.3, -0.6],
-    pinSide: 'right'
-  },
-  {
-    id: '05',
-    number: '05',
     name: 'CORE INSULATION',
+    shortName: 'XLPE CORES',
     material: 'Cross-Linked Polyethylene (XLPE)',
-    ratedVoltage: '18/30 (36) kV to 132 kV',
+    ratedVoltage: '18/30 (36) kV to 500 kV',
     thermalClass: '90°C normal / 250°C short circuit',
     color: '#168CFF',
     accentColor: '#168CFF',
@@ -81,57 +71,249 @@ export const CABLE_LAYERS = [
     pinSide: 'left'
   },
   {
-    id: '06',
-    number: '06',
-    name: 'STRANDED COPPER CONDUCTOR',
-    material: 'Class 2 Compacted Annealed Cu',
+    id: '05',
+    number: '05',
+    name: 'COPPER CONDUCTOR',
+    shortName: 'STRANDED Cu',
+    material: 'Class 2 Compacted Annealed Electrolytic Cu',
     conductivity: '> 100% IACS',
     maxResist: '0.0754 Ω/km @ 20°C',
     color: '#FF7A18',
     accentColor: '#FF7A18',
-    description: 'Electrolytic copper stranded in concentric geometric layers, compressed for maximum circularity and optimal current-carrying efficiency.',
-    specs: ['Purity: 99.99% Electrolytic Cu', 'Standard: IEC 60228 Class 2', 'Short-Circuit Capacity: 35.8 kA / 1s'],
+    description: 'Electrolytic copper stranded in concentric geometric layers (57 strands), compressed for circularity and optimal current-carrying efficiency.',
+    specs: ['Purity: 99.99% Electrolytic Cu', 'Standard: IEC 60228 Class 2', 'Short-Circuit: 35.8 kA / 1s'],
     targetMesh: '09_Copper_Core1_Strand01',
     worldAnchor: [4.8, 0.6, 0.6],
     pinSide: 'right'
   }
 ];
 
+export const CABLE_ENVIRONMENTS = [
+  {
+    id: 'furnace',
+    index: 0,
+    title: 'HIGH TEMPERATURE / FURNACE',
+    tag: 'FURNACE & THERMAL DUTY',
+    ambientColor: '#200A02',
+    ambientIntensity: 0.85,
+    topRimColor: '#FF4400',
+    topRimIntensity: 8.5,
+    bottomRimColor: '#FF8800',
+    bottomRimIntensity: 6.2,
+    keyColor: '#FFAA44',
+    keyIntensity: 2.5,
+    backgroundGradient: 'radial-gradient(ellipse at 50% 60%, rgba(180, 50, 0, 0.18) 0%, rgba(7, 9, 11, 1) 75%)',
+    description: 'Tested up to +250°C short-circuit surge and continuous +90°C radiant thermal loading in metallurgical smelters and foundry environments.',
+    metrics: ['Thermal Rating: 250°C Peak', 'Radiant Heat Shield: AG4', 'Continuous Rating: 90°C']
+  },
+  {
+    id: 'machinery',
+    index: 1,
+    title: 'INDUSTRIAL MACHINERY',
+    tag: 'HEAVY AUTOMATION & ROBOTICS',
+    ambientColor: '#070E18',
+    ambientIntensity: 0.75,
+    topRimColor: '#0088FF',
+    topRimIntensity: 7.8,
+    bottomRimColor: '#38BDF8',
+    bottomRimIntensity: 4.8,
+    keyColor: '#E2E8F0',
+    keyIntensity: 2.8,
+    backgroundGradient: 'radial-gradient(ellipse at 50% 50%, rgba(10, 45, 90, 0.22) 0%, rgba(7, 9, 11, 1) 75%)',
+    description: 'Continuous torsional duty and electromagnetic shielding for high-speed robotic gantry lines, rolling mills, and automated stamping presses.',
+    metrics: ['Torsional Flex: ±100°/m', 'EMC Shielding: > 85 dB', 'Crush Resistance: 1450 N/mm²']
+  },
+  {
+    id: 'automotive',
+    index: 2,
+    title: 'EV / AUTOMOTIVE',
+    tag: 'E-MOBILITY & FAST CHARGING',
+    ambientColor: '#04141A',
+    ambientIntensity: 0.8,
+    topRimColor: '#00F0FF',
+    topRimIntensity: 8.0,
+    bottomRimColor: '#10B981',
+    bottomRimIntensity: 4.5,
+    keyColor: '#F0FDFA',
+    keyIntensity: 2.6,
+    backgroundGradient: 'radial-gradient(ellipse at 50% 50%, rgba(0, 120, 140, 0.20) 0%, rgba(7, 9, 11, 1) 75%)',
+    description: 'High-voltage DC fast-charging busways and lightweight powertrain interconnects certified for 1000V DC continuous battery architectures.',
+    metrics: ['DC Charging: 1000V / 500A', 'Weight Optimization: -18%', 'Vibration Index: ISO 16750']
+  },
+  {
+    id: 'energy',
+    index: 3,
+    title: 'POWER / ENERGY',
+    tag: '500 kV EHV TRANSMISSION',
+    ambientColor: '#080C14',
+    ambientIntensity: 0.8,
+    topRimColor: '#168CFF',
+    topRimIntensity: 8.2,
+    bottomRimColor: '#FF7A18',
+    bottomRimIntensity: 6.8,
+    keyColor: '#FFFFFF',
+    keyIntensity: 2.6,
+    backgroundGradient: 'radial-gradient(ellipse at 50% 50%, rgba(22, 140, 255, 0.15) 0%, rgba(7, 9, 11, 1) 75%)',
+    description: 'Metropolitan electrical grid transmission, offshore wind inter-array feeds, and nuclear utility links with zero-discharge dielectric safety.',
+    metrics: ['Rated Voltage: 500 kV EHV', 'Dielectric Strength: >22 kV/mm', 'Partial Discharge: <2 pC']
+  }
+];
+
+export const PRODUCT_CATEGORIES = [
+  {
+    id: 'power',
+    name: 'POWER CABLES',
+    voltage: '66 kV – 500 kV EHV',
+    subtitle: 'Extra-High Voltage Grid Transmission',
+    specs: 'Up to 2500 mm² Compacted Cu / Super-Clean XLPE',
+    description: 'Designed for primary electrical grid infrastructure, national substation interconnects, and bulk utility power delivery with zero partial discharge.'
+  },
+  {
+    id: 'control',
+    name: 'CONTROL CABLES',
+    voltage: '0.6 / 1.0 kV',
+    subtitle: 'Armoured Multi-Conductor Automation',
+    specs: 'Class 5 Flexible Plain Copper / SWA Shielding',
+    description: 'High-density multi-conductor cables delivering uncompromised signal fidelity and crush defense in automated switchgear and robotic cells.'
+  },
+  {
+    id: 'instrumentation',
+    name: 'INSTRUMENTATION CABLES',
+    voltage: '300 / 500 V',
+    subtitle: 'Shielded Precision Signal Transmission',
+    specs: 'Individual & Collective Al-Mylar Foil / Tinned Drain',
+    description: 'Engineered for SCADA networks, DCS architectures, and intrinsically safe petrochemical instrumentation requiring crosstalk rejection > 85 dB.'
+  },
+  {
+    id: 'ev',
+    name: 'EV CABLES',
+    voltage: '1000 V DC / 500 A',
+    subtitle: 'High-Power Automotive & Charging',
+    specs: 'Fine Stranded Annealed Cu / Silicone / TPE-U Jacket',
+    description: 'Ultra-flexible lightweight high-voltage cabling for electric vehicle powertrains, liquid-cooled superchargers, and megawatt charging systems.'
+  },
+  {
+    id: 'industrial',
+    name: 'INDUSTRIAL CABLES',
+    voltage: '1.8 / 3.0 kV to 35 kV',
+    subtitle: 'Severe-Duty Reeling & Trailing',
+    specs: 'Chloroprene / EPR Heavy Duty Rubber Compound',
+    description: 'Built for open-cast mining draglines, container terminal gantry cranes, and continuous flex festoon systems tolerating ±100°/m torsion.'
+  },
+  {
+    id: 'specialty',
+    name: 'SPECIALTY CABLES',
+    voltage: 'Up to 525 kV DC',
+    subtitle: 'Dynamic Subsea & Nuclear Certified',
+    specs: 'Lead-Sheathed Hermetic Barrier / PEEK Insulation',
+    description: 'Custom-engineered subsea power umbilicals for deepwater floating wind turbines and nuclear containment rated for 60-year radiation longevity.'
+  }
+];
+
+export const MANUFACTURING_STEPS = [
+  {
+    step: '01',
+    title: 'CONDUCTOR STRANDING',
+    short: '01 CONDUCTOR',
+    detail: '57 annealed electrolytic copper wires spun in counter-concentric layers and roll-compacted to 98% circularity.'
+  },
+  {
+    step: '02',
+    title: 'TRIPLE EXTRUSION INSULATION',
+    short: '02 INSULATION',
+    detail: 'Conductor screen, super-clean XLPE, and core screen extruded simultaneously in a 180m vertical VCV tower.'
+  },
+  {
+    step: '03',
+    title: 'STEEL WIRE ARMOURING',
+    short: '03 SHIELDING',
+    detail: 'High-tensile galvanized steel wires counter-braided under calibrated pneumatic tension for 1450 N/mm² defense.'
+  },
+  {
+    step: '04',
+    title: 'OUTER SHEATH EXTRUSION',
+    short: '04 JACKET',
+    detail: 'Heavy-duty LSOH polymer jacket extruded with continuous inline ultrasonic wall thickness verification.'
+  },
+  {
+    step: '05',
+    title: 'FINAL MONOLITHIC CABLE',
+    short: '05 FINAL CABLE',
+    detail: '100% routine spark, high-voltage withstand, and partial discharge inspection before reel deployment.'
+  }
+];
+
+export const TIMELINE_PHASES = {
+  // 1. Hero entrance and settled state
+  heroEntranceEnd: 0.12,
+  
+  // 2. Controlled rotation & perspective shift
+  rotationStart: 0.12,
+  rotationEnd: 0.28,
+  
+  // 3. Exploded view layer-by-layer
+  explosionStart: 0.28,
+  jacketExplode: 0.35,
+  armourExplode: 0.42,
+  insulationExplode: 0.47,
+  coresExplode: 0.52,
+  copperExplode: 0.58,
+  
+  // 4. Internal inspection camera zoom
+  inspectionStart: 0.58,
+  inspectionPeak: 0.68,
+  
+  // 5. Precision reassembly (smooth return)
+  reassemblyStart: 0.68,
+  reassemblyEnd: 0.78,
+  
+  // 6. Extreme Environments transition
+  environmentsStart: 0.78,
+  environmentsEnd: 0.90,
+  
+  // 7. Interactive product category focus
+  productsStart: 0.90,
+  productsEnd: 0.96,
+  
+  // 8. Manufacturing sequence & CTA
+  ctaStart: 0.96,
+  ctaEnd: 1.00
+};
+
 export const ANIMATION_CONFIG = {
   // Sheath translation along X (backwards)
-  sheathOffset: -3.2,
-  sheathCutRimOffset: -3.2,
-
+  sheathOffset: -3.5,
+  
   // Bedding & tape offset
-  beddingOffset: -1.6,
-  tapeOffset: -1.6,
-
+  beddingOffset: -1.8,
+  
   // Inner sheath offset
-  innerSheathOffset: -0.8,
+  innerSheathOffset: -1.0,
 
   // Armour expansion & shift
-  armourRadialSpread: 0.42,
-  armourAxialOffset: -1.0,
+  armourAxialOffset: -1.2,
+  armourRadialSpread: 0.38,
 
-  // Core 1 (Blue) radial spread in Y-Z plane
-  core1Spread: { y: 0.0, z: 0.85 },
+  // Cores radial spread in Y-Z plane
+  core1Spread: { y: 0.0, z: 0.90 },
+  core2Spread: { y: 0.80, z: -0.55 },
+  core3Spread: { y: -0.80, z: -0.55 },
 
-  // Core 2 (Black) radial spread in Y-Z plane
-  core2Spread: { y: 0.75, z: -0.5 },
+  // Copper strand forward extension along X (+X)
+  copperAxialOffset: 1.15,
 
-  // Core 3 (White) radial spread in Y-Z plane
-  core3Spread: { y: -0.75, z: -0.5 },
-
-  // Copper strand forward extension along X and slight flare
-  copperAxialOffset: 0.95,
-  copperFlareScale: 1.12,
-
-  // Global rotation matching product.png reference
-  initialRotation: [0.20, -0.48, -0.16],
-  explodedRotation: [0.28, -0.72, 0.04],
+  // Global rotation base
+  initialRotation: [0.18, -0.46, -0.12],
+  explodedRotation: [0.26, -0.68, 0.02],
+  inspectionRotation: [0.32, -0.82, 0.08],
+  ctaRotation: [0.12, -0.32, -0.18],
 
   // Camera settings
-  cameraInitial: { x: -0.2, y: 0.8, z: 8.2 },
-  cameraZoomed: { x: 0.5, y: 0.6, z: 6.8 },
-  cameraExploded: { x: 0.8, y: 0.5, z: 7.4 }
+  cameraEntrance: { x: -3.5, y: 1.6, z: 10.5 },
+  cameraHero: { x: 0.0, y: 1.1, z: 8.5 },
+  cameraRotated: { x: 0.3, y: 0.9, z: 7.6 },
+  cameraExploded: { x: 0.6, y: 0.7, z: 7.2 },
+  cameraInspection: { x: 2.4, y: 0.5, z: 4.2 },
+  cameraReassembled: { x: 0.0, y: 1.0, z: 8.2 },
+  cameraCta: { x: -0.8, y: 0.6, z: 7.8 }
 };

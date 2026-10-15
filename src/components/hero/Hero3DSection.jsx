@@ -1,20 +1,24 @@
 import React, { useRef, useState, useEffect } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CableScene } from '../canvas/CableScene';
 import { TechnicalLabelsOverlay } from '../canvas/TechnicalLabelsOverlay';
 import { HeroOverlay } from './HeroOverlay';
 import { LayerDetailModal } from '../ui/LayerDetailModal';
-
-gsap.registerPlugin(ScrollTrigger);
+import { QuoteForm } from '../sections/QuoteForm';
+import { addLenisScrollListener, getLenis } from '../../hooks/useLenisScroll';
+import { CABLE_ENVIRONMENTS, PRODUCT_CATEGORIES } from '../../config/cableConfig';
+import { X } from 'lucide-react';
 
 export function Hero3DSection() {
   const containerRef = useRef(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [labels, setLabels] = useState([]);
   const [activeLayer, setActiveLayer] = useState(null);
+  const [activeEnvIndex, setActiveEnvIndex] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(PRODUCT_CATEGORIES[0]);
+  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(false);
   const playDirection = useRef(1);
   const autoPlayAnimId = useRef(null);
 
@@ -27,79 +31,60 @@ export function Hero3DSection() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Window scroll event listener for 100% reliable progress calculation
+  // Sync scrollProgress smoothly via Lenis
   useEffect(() => {
-    const handleScroll = () => {
-      if (isPlaying) return;
+    const syncFromWindow = () => {
       const totalScrollable = document.documentElement.scrollHeight - window.innerHeight;
       if (totalScrollable > 0) {
-        const p = Math.max(0, Math.min(1, window.scrollY / totalScrollable));
-        setScrollProgress(p);
+        setScrollProgress(Math.max(0, Math.min(1, window.scrollY / totalScrollable)));
       }
     };
+    syncFromWindow();
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isPlaying]);
-
-  // GSAP ScrollTrigger synchronization
-  useEffect(() => {
-    const trigger = containerRef.current;
-    if (!trigger) return;
-
-    const st = ScrollTrigger.create({
-      trigger: trigger,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 0.5,
-      onUpdate: (self) => {
-        if (!isPlaying) {
-          setScrollProgress(self.progress);
-        }
+    const unsubscribe = addLenisScrollListener((e) => {
+      if (isPlayingRef.current) return;
+      if (typeof e.progress === 'number') {
+        setScrollProgress(e.progress);
       }
     });
 
+    const handleWindowScroll = () => {
+      if (isPlayingRef.current) return;
+      const lenis = getLenis();
+      if (!lenis) {
+        syncFromWindow();
+      }
+    };
+
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+
     return () => {
-      st.kill();
+      unsubscribe();
+      window.removeEventListener('scroll', handleWindowScroll);
     };
-  }, [isPlaying]);
-
-  // Wheel listener: directly scrub scroll position on wheel for effortless control
-  useEffect(() => {
-    const handleWheel = (e) => {
-      if (isPlaying) return;
-      // Allow wheel to scrub scroll position smoothly
-      const totalScrollable = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalScrollable <= 0) return;
-
-      const delta = e.deltaY;
-      const nextY = Math.max(0, Math.min(totalScrollable, window.scrollY + delta));
-      window.scrollTo(0, nextY);
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [isPlaying]);
+  }, []);
 
   // Auto-play animation loop
   useEffect(() => {
+    isPlayingRef.current = isPlaying;
+    const lenis = getLenis();
+
     if (!isPlaying) {
       if (autoPlayAnimId.current) cancelAnimationFrame(autoPlayAnimId.current);
+      if (lenis) lenis.start();
       return;
     }
+
+    if (lenis) lenis.stop();
 
     let lastTime = performance.now();
 
     const loop = (time) => {
-      const dt = (time - lastTime) / 1000;
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
       setScrollProgress((prev) => {
-        let next = prev + dt * 0.16 * playDirection.current;
+        let next = prev + dt * 0.08 * playDirection.current;
         if (next >= 1) {
           next = 1;
           playDirection.current = -1;
@@ -108,10 +93,9 @@ export function Hero3DSection() {
           playDirection.current = 1;
         }
 
-        // Keep window scroll in sync during autoplay
         const totalScrollable = document.documentElement.scrollHeight - window.innerHeight;
-        if (totalScrollable > 0) {
-          window.scrollTo(0, totalScrollable * next);
+        if (totalScrollable > 0 && lenis) {
+          lenis.scrollTo(totalScrollable * next, { immediate: true });
         }
 
         return next;
@@ -124,32 +108,42 @@ export function Hero3DSection() {
 
     return () => {
       if (autoPlayAnimId.current) cancelAnimationFrame(autoPlayAnimId.current);
+      if (lenis) lenis.start();
     };
   }, [isPlaying]);
 
   const handleScrubState = (targetProgress) => {
     setIsPlaying(false);
-    setScrollProgress(targetProgress);
-
+    isPlayingRef.current = false;
+    const lenis = getLenis();
     const totalDistance = document.documentElement.scrollHeight - window.innerHeight;
-    if (totalDistance > 0) {
-      window.scrollTo({
-        top: totalDistance * targetProgress,
-        behavior: 'smooth'
+    if (lenis && totalDistance > 0) {
+      lenis.scrollTo(totalDistance * targetProgress, {
+        duration: 1.4,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
       });
+    } else {
+      setScrollProgress(targetProgress);
+      if (totalDistance > 0) {
+        window.scrollTo({
+          top: totalDistance * targetProgress,
+          behavior: 'smooth'
+        });
+      }
     }
   };
 
   const handleSliderChange = (newProgress) => {
     setIsPlaying(false);
+    isPlayingRef.current = false;
     setScrollProgress(newProgress);
 
+    const lenis = getLenis();
     const totalDistance = document.documentElement.scrollHeight - window.innerHeight;
-    if (totalDistance > 0) {
-      window.scrollTo({
-        top: totalDistance * newProgress,
-        behavior: 'auto'
-      });
+    if (lenis && totalDistance > 0) {
+      lenis.scrollTo(totalDistance * newProgress, { immediate: true });
+    } else if (totalDistance > 0) {
+      window.scrollTo(0, totalDistance * newProgress);
     }
   };
 
@@ -164,26 +158,41 @@ export function Hero3DSection() {
 
   const handleExplodeToggle = () => {
     setIsPlaying(false);
-    if (scrollProgress > 0.5) {
+    if (scrollProgress >= 0.35 && scrollProgress <= 0.65) {
       handleScrubState(0);
     } else {
-      handleScrubState(1);
+      handleScrubState(0.48);
     }
   };
+
+  // Compute active background gradient based on environments
+  const effectiveEnvIdx =
+    activeEnvIndex !== null
+      ? activeEnvIndex
+      : scrollProgress >= 0.78 && scrollProgress <= 0.90
+      ? Math.min(3, Math.floor(((scrollProgress - 0.78) / 0.12) * 4))
+      : 3;
+  const currentEnv = CABLE_ENVIRONMENTS[effectiveEnvIdx] || CABLE_ENVIRONMENTS[3];
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[350vh] bg-[#07090B]"
+      className="relative w-full h-[650vh] bg-[#07090B]"
     >
       {/* 
         FIXED VIEWPORT:
         Locks the 3D Canvas permanently to the screen so it NEVER scrolls out of view.
         No matter how much the user scrolls, the 3D cable animation stays 100% visible!
       */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden bg-[#07090B] z-0">
-        {/* Subtle grid pattern background */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
+      <div
+        style={{
+          background: currentEnv.backgroundGradient,
+          transition: 'background 0.8s ease'
+        }}
+        className="fixed inset-0 w-full h-full overflow-hidden bg-[#07090B] z-0"
+      >
+        {/* Subtle engineering grid pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-25 pointer-events-none" />
 
         {/* 3D Canvas Scene */}
         <CableScene
@@ -191,6 +200,8 @@ export function Hero3DSection() {
           onUpdateLabels={setLabels}
           activeLayerId={activeLayer?.id}
           onSelectLayer={setActiveLayer}
+          activeCategory={activeCategory}
+          activeEnvIndex={effectiveEnvIdx}
           isMobile={isMobile}
         />
 
@@ -199,7 +210,7 @@ export function Hero3DSection() {
           labels={labels}
           activeLayerId={activeLayer?.id}
           onSelectLayer={setActiveLayer}
-          isVisible={scrollProgress > 0.12}
+          isVisible={scrollProgress >= 0.25 && scrollProgress <= 0.70}
         />
 
         {/* Hero Overlay with Animation Controls & Scrubber */}
@@ -211,6 +222,11 @@ export function Hero3DSection() {
           onExplodeToggle={handleExplodeToggle}
           onScrubState={handleScrubState}
           onSliderChange={handleSliderChange}
+          activeEnvIndex={effectiveEnvIdx}
+          onSelectEnvironment={setActiveEnvIndex}
+          activeCategory={activeCategory}
+          onSelectCategory={setActiveCategory}
+          onOpenConsultation={() => setIsConsultationOpen(true)}
         />
 
         {/* Layer Specification Inspector Modal */}
@@ -219,6 +235,21 @@ export function Hero3DSection() {
             layer={activeLayer}
             onClose={() => setActiveLayer(null)}
           />
+        )}
+
+        {/* Technical Consultation Modal */}
+        {isConsultationOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
+            <div className="relative w-full max-w-4xl bg-[#0D1219] border border-[#2A3644] p-6 sm:p-10 shadow-2xl animate-in fade-in duration-200 my-8">
+              <button
+                onClick={() => setIsConsultationOpen(false)}
+                className="absolute top-6 right-6 text-[#9CA3AF] hover:text-white p-2"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <QuoteForm preselectedProduct={activeCategory?.name} />
+            </div>
+          </div>
         )}
       </div>
     </div>

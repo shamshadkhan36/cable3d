@@ -5,38 +5,44 @@ export function TechnicalLabelsOverlay({ labels = [], activeLayerId, onSelectLay
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-      {/* SVG Connecting Lines Layer */}
-      <svg className="w-full h-full absolute inset-0">
+      {/* SVG Connecting Leader Lines Layer */}
+      <svg className="w-full h-full absolute inset-0 pointer-events-none">
         <defs>
-          <linearGradient id="blueTechLine" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#168CFF" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#168CFF" stopOpacity="0.2" />
+          <linearGradient id="techBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#168CFF" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#168CFF" stopOpacity="0.25" />
           </linearGradient>
-          <linearGradient id="orangeTechLine" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FF7A18" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#FF7A18" stopOpacity="0.2" />
+          <linearGradient id="techOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FF7A18" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#FF7A18" stopOpacity="0.25" />
           </linearGradient>
         </defs>
 
         {labels.map((item) => {
-          if (!item.visible || item.opacity < 0.2) return null;
+          if (!item.visible || item.opacity < 0.15) return null;
 
           const isLeft = item.pinSide === 'left';
-          const cardX = isLeft ? Math.max(20, item.screenX - 220) : Math.min(window.innerWidth - 240, item.screenX + 160);
-          const cardY = Math.max(80, Math.min(window.innerHeight - 120, item.screenY - 20));
-          const elbowX = isLeft ? cardX + 180 : cardX;
+          const cardX = isLeft ? Math.max(24, item.screenX - 250) : Math.min(window.innerWidth - 260, item.screenX + 170);
+          const cardY = Math.max(90, Math.min(window.innerHeight - 130, item.screenY - 24));
+          const elbowX = isLeft ? cardX + 210 : cardX;
 
-          const isOrange = item.id === '03' || item.id === '06';
-          const strokeColor = isOrange ? 'url(#orangeTechLine)' : 'url(#blueTechLine)';
+          const isOrange = item.id === '03' || item.id === '05';
+          const strokeColor = isOrange ? 'url(#techOrangeGrad)' : 'url(#techBlueGrad)';
           const dotColor = isOrange ? '#FF7A18' : '#168CFF';
 
           return (
-            <g key={`line-${item.id}`} style={{ opacity: item.opacity }}>
-              {/* Anchor point on 3D cable */}
+            <g
+              key={`line-${item.id}`}
+              style={{
+                opacity: item.opacity,
+                transition: 'opacity 0.25s ease-out'
+              }}
+            >
+              {/* Inner Anchor dot on 3D cable */}
               <circle
                 cx={item.screenX}
                 cy={item.screenY}
-                r="3.5"
+                r="3"
                 fill={dotColor}
                 stroke="#07090B"
                 strokeWidth="1.5"
@@ -44,7 +50,7 @@ export function TechnicalLabelsOverlay({ labels = [], activeLayerId, onSelectLay
               <circle
                 cx={item.screenX}
                 cy={item.screenY}
-                r="7"
+                r="6.5"
                 fill="none"
                 stroke={dotColor}
                 strokeWidth="1"
@@ -52,9 +58,9 @@ export function TechnicalLabelsOverlay({ labels = [], activeLayerId, onSelectLay
                 opacity="0.6"
               />
 
-              {/* Technical leader path */}
+              {/* Technical leader path with elbow */}
               <path
-                d={`M ${item.screenX} ${item.screenY} L ${elbowX} ${cardY + 16} L ${cardX + (isLeft ? 170 : 10)} ${cardY + 16}`}
+                d={`M ${item.screenX} ${item.screenY} L ${elbowX} ${cardY + 18} L ${cardX + (isLeft ? 200 : 10)} ${cardY + 18}`}
                 fill="none"
                 stroke={strokeColor}
                 strokeWidth="1.2"
@@ -64,7 +70,7 @@ export function TechnicalLabelsOverlay({ labels = [], activeLayerId, onSelectLay
               {/* Terminal tick */}
               <circle
                 cx={elbowX}
-                cy={cardY + 16}
+                cy={cardY + 18}
                 r="2"
                 fill={dotColor}
               />
@@ -75,35 +81,36 @@ export function TechnicalLabelsOverlay({ labels = [], activeLayerId, onSelectLay
 
       {/* HTML Technical Label Cards */}
       {labels.map((item) => {
-        if (!item.visible || item.opacity < 0.2) return null;
+        if (!item.visible || item.opacity < 0.15) return null;
 
         const isLeft = item.pinSide === 'left';
-        const cardX = isLeft ? Math.max(20, item.screenX - 220) : Math.min(window.innerWidth - 240, item.screenX + 160);
-        const cardY = Math.max(80, Math.min(window.innerHeight - 120, item.screenY - 20));
+        const cardX = isLeft ? Math.max(24, item.screenX - 250) : Math.min(window.innerWidth - 260, item.screenX + 170);
+        const cardY = Math.max(90, Math.min(window.innerHeight - 130, item.screenY - 24));
         const isActive = activeLayerId === item.id;
-        const isOrange = item.id === '03' || item.id === '06';
+        const isOrange = item.id === '03' || item.id === '05';
 
         return (
           <div
             key={`card-${item.id}`}
             style={{
-              transform: `translate(${cardX}px, ${cardY}px)`,
+              transform: `translate3d(${cardX}px, ${cardY}px, 0)`,
               opacity: item.opacity,
-              transition: 'opacity 0.2s ease-out'
+              transition: 'opacity 0.25s ease-out',
+              willChange: 'transform, opacity'
             }}
             onClick={() => onSelectLayer && onSelectLayer(item)}
-            className={`absolute top-0 left-0 pointer-events-auto cursor-pointer group select-none p-3 rounded-none border transition-all duration-300 ${
+            className={`absolute top-0 left-0 pointer-events-auto cursor-pointer group select-none p-3.5 border transition-all duration-300 ${
               isActive
-                ? 'bg-[#0D1219]/95 border-[#168CFF] shadow-[0_0_20px_rgba(22,140,255,0.3)]'
-                : 'bg-[#0A0D12]/80 border-[#1E2633] hover:border-[#384860] hover:bg-[#0E141D]/90'
+                ? 'bg-[#0D1219]/95 border-[#168CFF] shadow-[0_0_25px_rgba(22,140,255,0.35)]'
+                : 'bg-[#0A0D12]/85 border-[#1E2633] hover:border-[#384860] hover:bg-[#0E141D]/95'
             }`}
           >
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1.5">
               <span
-                className={`text-[10px] font-mono-tech px-1.5 py-0.5 border ${
+                className={`text-[9px] font-mono-tech px-1.5 py-0.5 border font-bold ${
                   isOrange
-                    ? 'border-[#FF7A18]/50 text-[#FF7A18] bg-[#FF7A18]/10'
-                    : 'border-[#168CFF]/50 text-[#168CFF] bg-[#168CFF]/10'
+                    ? 'border-[#FF7A18]/60 text-[#FF7A18] bg-[#FF7A18]/10'
+                    : 'border-[#168CFF]/60 text-[#168CFF] bg-[#168CFF]/10'
                 }`}
               >
                 {item.number}
@@ -112,13 +119,13 @@ export function TechnicalLabelsOverlay({ labels = [], activeLayerId, onSelectLay
                 {item.name}
               </span>
             </div>
-            <p className="text-[10px] text-[#9CA3AF] line-clamp-1 max-w-[190px]">
+            <p className="text-[10px] text-[#9CA3AF] line-clamp-1 max-w-[210px] font-sans">
               {item.material}
             </p>
-            <div className="mt-1 flex items-center gap-2 text-[9px] text-[#6B7280] font-mono-tech">
-              <span>{item.thickness || item.coverage || item.dielectric || item.conductivity}</span>
+            <div className="mt-1.5 flex items-center justify-between text-[9px] text-[#6B7280] font-mono-tech pt-1.5 border-t border-[#161F2B]">
+              <span>{item.thickness || item.coverage || item.conductivity || item.ratedVoltage}</span>
               <span className="text-[#168CFF] opacity-0 group-hover:opacity-100 transition-opacity">
-                VIEW SPECS →
+                INSPECT →
               </span>
             </div>
           </div>
