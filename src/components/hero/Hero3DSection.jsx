@@ -4,7 +4,7 @@ import { TechnicalLabelsOverlay } from '../canvas/TechnicalLabelsOverlay';
 import { HeroOverlay } from './HeroOverlay';
 import { LayerDetailModal } from '../ui/LayerDetailModal';
 import { QuoteForm } from '../sections/QuoteForm';
-import { addLenisScrollListener, getLenis } from '../../hooks/useLenisScroll';
+import { addLenisScrollListener, getLenis, scrollState } from '../../hooks/useLenisScroll';
 import { CABLE_ENVIRONMENTS, PRODUCT_CATEGORIES } from '../../config/cableConfig';
 import { X } from 'lucide-react';
 
@@ -31,12 +31,19 @@ export function Hero3DSection() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Sync scrollProgress smoothly via Lenis
+  // Sync scrollProgress smoothly via Lenis with optimized render throttling
   useEffect(() => {
+    let lastReportedProgress = -1;
+
     const syncFromWindow = () => {
       const totalScrollable = document.documentElement.scrollHeight - window.innerHeight;
       if (totalScrollable > 0) {
-        setScrollProgress(Math.max(0, Math.min(1, window.scrollY / totalScrollable)));
+        const p = Math.max(0, Math.min(1, window.scrollY / totalScrollable));
+        scrollState.progress = p;
+        if (Math.abs(p - lastReportedProgress) > 0.002 || p === 0 || p === 1) {
+          lastReportedProgress = p;
+          setScrollProgress(p);
+        }
       }
     };
     syncFromWindow();
@@ -44,7 +51,12 @@ export function Hero3DSection() {
     const unsubscribe = addLenisScrollListener((e) => {
       if (isPlayingRef.current) return;
       if (typeof e.progress === 'number') {
-        setScrollProgress(e.progress);
+        scrollState.progress = e.progress;
+        // Throttle React state re-renders to prevent GC pressure and frame drops
+        if (Math.abs(e.progress - lastReportedProgress) > 0.002 || e.progress === 0 || e.progress === 1) {
+          lastReportedProgress = e.progress;
+          setScrollProgress(e.progress);
+        }
       }
     });
 
@@ -93,6 +105,8 @@ export function Hero3DSection() {
           playDirection.current = 1;
         }
 
+        scrollState.progress = next;
+
         const totalScrollable = document.documentElement.scrollHeight - window.innerHeight;
         if (totalScrollable > 0 && lenis) {
           lenis.scrollTo(totalScrollable * next, { immediate: true });
@@ -115,27 +129,28 @@ export function Hero3DSection() {
   const handleScrubState = (targetProgress) => {
     setIsPlaying(false);
     isPlayingRef.current = false;
+    scrollState.progress = targetProgress;
+    setScrollProgress(targetProgress);
+
     const lenis = getLenis();
     const totalDistance = document.documentElement.scrollHeight - window.innerHeight;
     if (lenis && totalDistance > 0) {
       lenis.scrollTo(totalDistance * targetProgress, {
-        duration: 1.4,
+        duration: 1.6,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
       });
-    } else {
-      setScrollProgress(targetProgress);
-      if (totalDistance > 0) {
-        window.scrollTo({
-          top: totalDistance * targetProgress,
-          behavior: 'smooth'
-        });
-      }
+    } else if (totalDistance > 0) {
+      window.scrollTo({
+        top: totalDistance * targetProgress,
+        behavior: 'smooth'
+      });
     }
   };
 
   const handleSliderChange = (newProgress) => {
     setIsPlaying(false);
     isPlayingRef.current = false;
+    scrollState.progress = newProgress;
     setScrollProgress(newProgress);
 
     const lenis = getLenis();
@@ -179,11 +194,6 @@ export function Hero3DSection() {
       ref={containerRef}
       className="relative w-full h-[650vh] bg-[#07090B]"
     >
-      {/* 
-        FIXED VIEWPORT:
-        Locks the 3D Canvas permanently to the screen so it NEVER scrolls out of view.
-        No matter how much the user scrolls, the 3D cable animation stays 100% visible!
-      */}
       <div
         style={{
           background: currentEnv.backgroundGradient,

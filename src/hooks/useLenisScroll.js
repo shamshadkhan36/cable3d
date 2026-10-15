@@ -1,15 +1,22 @@
 import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 let globalLenis = null;
 const scrollListeners = new Set();
 
+// Synchronous global scroll state for 120 FPS WebGL useFrame access with zero React latency
+export const scrollState = {
+  progress: 0,
+  scroll: 0,
+  velocity: 0,
+};
+
 export function getLenis() {
   return globalLenis;
+}
+
+export function getScrollProgress() {
+  return scrollState.progress;
 }
 
 export function addLenisScrollListener(callback) {
@@ -21,14 +28,16 @@ export function useLenisScroll() {
   const lenisRef = useRef(null);
 
   useEffect(() => {
+    // Premium cinematic heavy scroll configuration (smooth, heavy, controlled, physically believable)
     const lenis = new Lenis({
-      duration: 1.4,
+      duration: 1.6, // Longer duration for heavy, majestic industrial deceleration
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.95,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 0.88, // Refined wheel sensitivity
+      touchMultiplier: 1.2,
+      infinite: false,
       autoResize: true,
     });
 
@@ -38,9 +47,12 @@ export function useLenisScroll() {
       window.lenis = lenis;
     }
 
-    // Connect Lenis scroll updates to GSAP ScrollTrigger
+    // Update synchronous scroll state immediately on every scroll tick
     lenis.on('scroll', (e) => {
-      ScrollTrigger.update();
+      scrollState.progress = e.progress;
+      scrollState.scroll = e.scroll;
+      scrollState.velocity = e.velocity;
+
       scrollListeners.forEach((fn) => {
         try {
           fn(e);
@@ -50,15 +62,16 @@ export function useLenisScroll() {
       });
     });
 
-    const rafCallback = (time) => {
-      lenis.raf(time * 1000);
+    // Native requestAnimationFrame loop with sub-millisecond precision
+    let rafId;
+    const rafLoop = (time) => {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(rafLoop);
     };
-
-    gsap.ticker.add(rafCallback);
-    gsap.ticker.lagSmoothing(500, 33);
+    rafId = requestAnimationFrame(rafLoop);
 
     return () => {
-      gsap.ticker.remove(rafCallback);
+      if (rafId) cancelAnimationFrame(rafId);
       lenis.destroy();
       globalLenis = null;
       if (typeof window !== 'undefined' && window.lenis === lenis) {
@@ -76,5 +89,5 @@ export function useLenisScroll() {
     }
   };
 
-  return { scrollTo, lenis: lenisRef.current, getLenis };
+  return { scrollTo, lenis: lenisRef.current, getLenis, getScrollProgress };
 }

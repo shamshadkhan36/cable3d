@@ -8,6 +8,15 @@ import {
   CABLE_LAYERS,
   TIMELINE_PHASES
 } from '../../config/cableConfig';
+import { getScrollProgress } from '../../hooks/useLenisScroll';
+
+// C2 Continuous smootherstep (Ken Perlin formula)
+function smootherStep(edge0, edge1, x) {
+  if (x <= edge0) return 0;
+  if (x >= edge1) return 1;
+  const t = (x - edge0) / (edge1 - edge0);
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
 
 export function CableModel({
   scrollProgress = 0,
@@ -26,13 +35,16 @@ export function CableModel({
   const entranceRef = useRef(0);
   const entranceStartTime = useRef(null);
 
-  // Mouse parallax coordinates (normalized -1 to 1)
+  // Mouse parallax coordinates
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
   // Smooth interpolated scroll progress
   const currentProgress = useRef(0);
   const lastUpdateProgress = useRef(0);
   const lastUpdateTime = useRef(0);
+
+  // Unified damping constant identical to CameraRig for synchronized harmonic motion
+  const DAMP_LAMBDA = 4.8;
 
   // Set up subtle mouse parallax listener
   useEffect(() => {
@@ -82,47 +94,38 @@ export function CableModel({
           mat.envMapIntensity = 1.5;
 
           if (name.includes('01_Outer_Sheath') || name.includes('01A_Sheath_Cut_Rim')) {
-            // Refined graphite/charcoal (not pure black) so cylinder curvature is clearly visible
             mat.roughness = 0.32;
             mat.metalness = 0.22;
             mat.color = new THREE.Color('#222933');
           } else if (name.includes('05_Armour') || name.includes('05A_Armour')) {
-            // Bright polished galvanized steel wires
             mat.roughness = 0.15;
             mat.metalness = 0.98;
             mat.color = new THREE.Color('#E2E8F0');
           } else if (name.includes('03_Insulation_Tape')) {
-            // Water-blocking swelling tape
             mat.roughness = 0.30;
             mat.metalness = 0.20;
             mat.color = new THREE.Color('#CBD5E1');
           } else if (name.includes('02_Bedding')) {
-            // Bedding buffer
             mat.roughness = 0.35;
             mat.metalness = 0.25;
             mat.color = new THREE.Color('#2D3748');
           } else if (name.includes('04_Inner_Sheath')) {
-            // Inner sheath layer
             mat.roughness = 0.30;
             mat.metalness = 0.28;
             mat.color = new THREE.Color('#252E3A');
           } else if (name.includes('06_Core_Blue')) {
-            // Vibrant electric royal blue XLPE
             mat.roughness = 0.20;
             mat.metalness = 0.18;
             mat.color = new THREE.Color('#168CFF');
           } else if (name.includes('07_Core_Black')) {
-            // Rich midnight slate XLPE (visible against dark background)
             mat.roughness = 0.25;
             mat.metalness = 0.22;
             mat.color = new THREE.Color('#2A323D');
           } else if (name.includes('08_Core_White')) {
-            // Pure pearl white XLPE
             mat.roughness = 0.22;
             mat.metalness = 0.12;
             mat.color = new THREE.Color('#F8FAFC');
           } else if (name.includes('09_Copper')) {
-            // Gleaming annealed electrolytic copper
             mat.roughness = 0.14;
             mat.metalness = 0.98;
             mat.color = new THREE.Color('#F97316');
@@ -158,7 +161,6 @@ export function CableModel({
       }
     });
 
-    // Cache initial base positions of all meshes
     const basePositions = new Map();
     allMeshes.forEach((mesh) => {
       basePositions.set(mesh, {
@@ -185,14 +187,6 @@ export function CableModel({
     };
   }, [scene]);
 
-  // C2 continuous smootherstep
-  const smootherStep = (edge0, edge1, x) => {
-    if (x <= edge0) return 0;
-    if (x >= edge1) return 1;
-    const t = (x - edge0) / (edge1 - edge0);
-    return t * t * t * (t * (t * 6 - 15) + 10);
-  };
-
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.1);
     const clockTime = state.clock.getElapsedTime();
@@ -209,42 +203,39 @@ export function CableModel({
     }
     const entrance = entranceRef.current;
 
-    // 2. SMOOTH EXPONENTIAL DAMPING FOR SCROLL PROGRESS
+    // 2. SYNCHRONOUS PROGRESS ACCESS DIRECTLY FROM LENIS (Zero latency)
+    const rawP = getScrollProgress();
+    const targetP = Math.max(0, Math.min(1, typeof rawP === 'number' && !isNaN(rawP) ? rawP : scrollProgress));
+
     currentProgress.current = THREE.MathUtils.damp(
       currentProgress.current,
-      scrollProgress,
-      8.0,
+      targetP,
+      DAMP_LAMBDA,
       dt
     );
     const p = currentProgress.current;
 
-    // 3. SUBTLE MOUSE PARALLAX (1-2 degrees max, premium)
-    mouseRef.current.x = THREE.MathUtils.damp(mouseRef.current.x, mouseRef.current.targetX, 4.0, dt);
-    mouseRef.current.y = THREE.MathUtils.damp(mouseRef.current.y, mouseRef.current.targetY, 4.0, dt);
-    const parallaxY = mouseRef.current.x * 0.03;
-    const parallaxX = -mouseRef.current.y * 0.02;
+    // 3. SUBTLE MOUSE PARALLAX (Gentle 1-2 degrees, luxurious fluid float)
+    mouseRef.current.x = THREE.MathUtils.damp(mouseRef.current.x, mouseRef.current.targetX, 2.5, dt);
+    mouseRef.current.y = THREE.MathUtils.damp(mouseRef.current.y, mouseRef.current.targetY, 2.5, dt);
+    const parallaxY = mouseRef.current.x * 0.025;
+    const parallaxX = -mouseRef.current.y * 0.018;
 
-    // 4. TIMELINE PHASES & SMOOTH EXPANSION / REASSEMBLY CURVES
-    const rotPhase = smootherStep(TIMELINE_PHASES.rotationStart, TIMELINE_PHASES.rotationEnd, p);
+    // 4. TIMELINE PHASES WITH CONTINUOUS C2 MATHEMATICAL CURVES
+    const rotPhase = smootherStep(0.12, 0.28, p);
 
     // Exploded view separation (0.28 -> 0.58)
-    const sJacket = smootherStep(0.28, 0.40, p);
-    const sArmour = smootherStep(0.34, 0.46, p);
-    const sBedding = smootherStep(0.39, 0.50, p);
-    const sCores = smootherStep(0.44, 0.54, p);
-    const sCopper = smootherStep(0.48, 0.58, p);
-
-    // Inspection hold (0.58 -> 0.68)
-    const inspectionPhase = smootherStep(TIMELINE_PHASES.inspectionStart, TIMELINE_PHASES.inspectionPeak, p);
+    const sJacket = smootherStep(0.28, 0.42, p);
+    const sArmour = smootherStep(0.32, 0.46, p);
+    const sBedding = smootherStep(0.36, 0.50, p);
+    const sCores = smootherStep(0.40, 0.54, p);
+    const sCopper = smootherStep(0.44, 0.58, p);
 
     // Reconnection / Reassembly (0.68 -> 0.78)
-    const reassemblyPhase = smootherStep(TIMELINE_PHASES.reassemblyStart, TIMELINE_PHASES.reassemblyEnd, p);
-    const assembleFactor = 1 - reassemblyPhase;
+    const sReturn = smootherStep(0.68, 0.78, p);
+    const assembleFactor = 1 - sReturn;
 
-    // CTA composition (0.96 -> 1.00)
-    const ctaPhase = smootherStep(TIMELINE_PHASES.ctaStart, TIMELINE_PHASES.ctaEnd, p);
-
-    // Apply assembleFactor to explosion offsets so reassembly returns perfectly to 0
+    // Apply assembleFactor to explosion offsets so reassembly returns with C2 zero velocity
     const jacketDisp = ANIMATION_CONFIG.sheathOffset * sJacket * assembleFactor;
     const armourDispX = ANIMATION_CONFIG.armourAxialOffset * sArmour * assembleFactor;
     const armourRadial = ANIMATION_CONFIG.armourRadialSpread * sArmour * assembleFactor;
@@ -368,90 +359,103 @@ export function CableModel({
       }
     });
 
-    // 7. Global Model Group Position & Rotation
+    // 7. Global Model Group Position & Rotation with Seamless Boundary Continuity
     if (groupRef.current) {
-      // Entrance interpolation
-      const entrancePosX = THREE.MathUtils.lerp(-1.8, 0.0, entrance);
-      const entrancePosZ = THREE.MathUtils.lerp(-1.0, 0.0, entrance);
-      const entranceRotY = THREE.MathUtils.lerp(-0.70, ANIMATION_CONFIG.initialRotation[1], entrance);
+      const entrancePosX = THREE.MathUtils.lerp(-1.6, 0.0, entrance);
+      const entrancePosZ = THREE.MathUtils.lerp(-0.8, 0.0, entrance);
+      const entranceRotY = THREE.MathUtils.lerp(-0.65, ANIMATION_CONFIG.initialRotation[1], entrance);
 
-      // Scroll-based rotation trajectory
       let targetRotX = ANIMATION_CONFIG.initialRotation[0];
       let targetRotY = entranceRotY;
       let targetRotZ = ANIMATION_CONFIG.initialRotation[2];
 
-      if (p <= 0.28) {
-        targetRotX = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[0], ANIMATION_CONFIG.explodedRotation[0], rotPhase);
-        targetRotY = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[1], ANIMATION_CONFIG.explodedRotation[1], rotPhase);
-        targetRotZ = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[2], ANIMATION_CONFIG.explodedRotation[2], rotPhase);
-      } else if (p <= 0.68) {
-        targetRotX = THREE.MathUtils.lerp(ANIMATION_CONFIG.explodedRotation[0], ANIMATION_CONFIG.inspectionRotation[0], inspectionPhase);
-        targetRotY = THREE.MathUtils.lerp(ANIMATION_CONFIG.explodedRotation[1], ANIMATION_CONFIG.inspectionRotation[1], inspectionPhase);
-        targetRotZ = THREE.MathUtils.lerp(ANIMATION_CONFIG.explodedRotation[2], ANIMATION_CONFIG.inspectionRotation[2], inspectionPhase);
-      } else if (p <= 0.90) {
-        targetRotX = THREE.MathUtils.lerp(ANIMATION_CONFIG.inspectionRotation[0], 0.20, reassemblyPhase);
-        targetRotY = THREE.MathUtils.lerp(ANIMATION_CONFIG.inspectionRotation[1], -0.48, reassemblyPhase);
-        targetRotZ = THREE.MathUtils.lerp(ANIMATION_CONFIG.inspectionRotation[2], -0.10, reassemblyPhase);
-      } else if (p <= 0.96) {
-        targetRotX = 0.18;
-        targetRotY = -0.42;
-        targetRotZ = -0.12;
-      } else {
-        targetRotX = THREE.MathUtils.lerp(0.18, ANIMATION_CONFIG.ctaRotation[0], ctaPhase);
-        targetRotY = THREE.MathUtils.lerp(-0.42, ANIMATION_CONFIG.ctaRotation[1], ctaPhase);
-        targetRotZ = THREE.MathUtils.lerp(-0.12, ANIMATION_CONFIG.ctaRotation[2], ctaPhase);
-      }
-
-      // Add mouse parallax
-      targetRotX += parallaxX;
-      targetRotY += parallaxY;
-
-      // Group Position trajectory (well-centered with generous margins)
       let targetPosX = entrancePosX;
       let targetPosY = 0.0;
       let targetPosZ = entrancePosZ;
 
-      if (entrance >= 0.99) {
-        if (p <= 0.58) {
-          // Centered exploded view
-          targetPosX = THREE.MathUtils.lerp(0.0, -0.2, sJacket);
-          targetPosY = THREE.MathUtils.lerp(0.0, 0.05, sJacket);
-          targetPosZ = THREE.MathUtils.lerp(0.0, 0.2, sJacket);
-        } else if (p <= 0.68) {
-          targetPosX = THREE.MathUtils.lerp(-0.2, 0.0, inspectionPhase);
-          targetPosY = 0.05;
-          targetPosZ = 0.2;
-        } else if (p <= 0.78) {
-          targetPosX = THREE.MathUtils.lerp(0.0, 0.0, reassemblyPhase);
-          targetPosY = THREE.MathUtils.lerp(0.05, 0.0, reassemblyPhase);
-          targetPosZ = THREE.MathUtils.lerp(0.2, 0.0, reassemblyPhase);
-        } else if (p <= 0.96) {
-          targetPosX = 0.0;
-          targetPosY = 0.0;
-          targetPosZ = 0.0;
-        } else {
-          // CTA section: cable framed to the right
-          targetPosX = THREE.MathUtils.lerp(0.0, 0.65, ctaPhase);
-          targetPosY = THREE.MathUtils.lerp(0.0, -0.15, ctaPhase);
-          targetPosZ = THREE.MathUtils.lerp(0.0, 0.1, ctaPhase);
-        }
+      if (p <= 0.28) {
+        // Hero -> Rotated
+        targetRotX = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[0], 0.24, rotPhase);
+        targetRotY = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[1], -0.66, rotPhase);
+        targetRotZ = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[2], 0.00, rotPhase);
+        targetPosX = 0.0;
+        targetPosY = 0.0;
+        targetPosZ = 0.0;
+      } else if (p <= 0.58) {
+        // Exploded view
+        const t = smootherStep(0.28, 0.58, p);
+        targetRotX = 0.24;
+        targetRotY = -0.66;
+        targetRotZ = 0.00;
+        targetPosX = THREE.MathUtils.lerp(0.0, -0.15, t);
+        targetPosY = THREE.MathUtils.lerp(0.0, 0.02, t);
+        targetPosZ = THREE.MathUtils.lerp(0.0, 0.10, t);
+      } else if (p <= 0.68) {
+        // Macro inspection
+        const t = smootherStep(0.58, 0.68, p);
+        targetRotX = THREE.MathUtils.lerp(0.24, 0.28, t);
+        targetRotY = THREE.MathUtils.lerp(-0.66, -0.74, t);
+        targetRotZ = THREE.MathUtils.lerp(0.00, 0.04, t);
+        targetPosX = -0.15;
+        targetPosY = 0.02;
+        targetPosZ = 0.10;
+      } else if (p <= 0.78) {
+        // Reassembly (smoothly restores original hero rotation and position)
+        const t = smootherStep(0.68, 0.78, p);
+        targetRotX = THREE.MathUtils.lerp(0.28, ANIMATION_CONFIG.initialRotation[0], t);
+        targetRotY = THREE.MathUtils.lerp(-0.74, ANIMATION_CONFIG.initialRotation[1], t);
+        targetRotZ = THREE.MathUtils.lerp(0.04, ANIMATION_CONFIG.initialRotation[2], t);
+        targetPosX = THREE.MathUtils.lerp(-0.15, 0.0, t);
+        targetPosY = THREE.MathUtils.lerp(0.02, 0.0, t);
+        targetPosZ = THREE.MathUtils.lerp(0.10, 0.0, t);
+      } else if (p <= 0.90) {
+        // Environments
+        const t = smootherStep(0.78, 0.90, p);
+        targetRotX = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[0], 0.20, t);
+        targetRotY = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[1], -0.50, t);
+        targetRotZ = THREE.MathUtils.lerp(ANIMATION_CONFIG.initialRotation[2], -0.10, t);
+        targetPosX = 0.0;
+        targetPosY = 0.0;
+        targetPosZ = 0.0;
+      } else if (p <= 0.96) {
+        // Products
+        const t = smootherStep(0.90, 0.96, p);
+        targetRotX = THREE.MathUtils.lerp(0.20, 0.18, t);
+        targetRotY = THREE.MathUtils.lerp(-0.50, -0.44, t);
+        targetRotZ = THREE.MathUtils.lerp(-0.10, -0.12, t);
+        targetPosX = 0.0;
+        targetPosY = 0.0;
+        targetPosZ = 0.0;
+      } else {
+        // CTA section (smooth diagonal composition)
+        const t = smootherStep(0.96, 1.0, p);
+        targetRotX = THREE.MathUtils.lerp(0.18, 0.14, t);
+        targetRotY = THREE.MathUtils.lerp(-0.44, -0.32, t);
+        targetRotZ = THREE.MathUtils.lerp(-0.12, -0.16, t);
+        targetPosX = THREE.MathUtils.lerp(0.0, 0.55, t);
+        targetPosY = THREE.MathUtils.lerp(0.0, -0.12, t);
+        targetPosZ = THREE.MathUtils.lerp(0.0, 0.10, t);
       }
 
-      // Smooth exponential damping on group transforms
-      groupRef.current.position.x = THREE.MathUtils.damp(groupRef.current.position.x, targetPosX, 6.0, dt);
-      groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, targetPosY, 6.0, dt);
-      groupRef.current.position.z = THREE.MathUtils.damp(groupRef.current.position.z, targetPosZ, 6.0, dt);
+      // Add subtle mouse parallax
+      targetRotX += parallaxX;
+      targetRotY += parallaxY;
 
-      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetRotX, 6.0, dt);
-      groupRef.current.rotation.y = THREE.MathUtils.damp(groupRef.current.rotation.y, targetRotY, 6.0, dt);
-      groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetRotZ, 6.0, dt);
+      // Synchronized exponential damping identical to CameraRig
+      groupRef.current.position.x = THREE.MathUtils.damp(groupRef.current.position.x, targetPosX, DAMP_LAMBDA, dt);
+      groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, targetPosY, DAMP_LAMBDA, dt);
+      groupRef.current.position.z = THREE.MathUtils.damp(groupRef.current.position.z, targetPosZ, DAMP_LAMBDA, dt);
+
+      groupRef.current.rotation.x = THREE.MathUtils.damp(groupRef.current.rotation.x, targetRotX, DAMP_LAMBDA, dt);
+      groupRef.current.rotation.y = THREE.MathUtils.damp(groupRef.current.rotation.y, targetRotY, DAMP_LAMBDA, dt);
+      groupRef.current.rotation.z = THREE.MathUtils.damp(groupRef.current.rotation.z, targetRotZ, DAMP_LAMBDA, dt);
     }
 
-    // 8. PROJECT TECHNICAL LABELS ANCHORS (Visible during explosion phase 0.28 -> 0.68)
+    // 8. PROJECT TECHNICAL LABELS ANCHORS (Smooth update during explosion phase 0.26 -> 0.70)
     const timeNow = clockTime;
-    const isLabelPhase = p >= 0.25 && p <= 0.70;
+    const isLabelPhase = p >= 0.26 && p <= 0.70;
 
-    if (onUpdateLabels && groupRef.current && isLabelPhase && (Math.abs(p - (lastUpdateProgress.current || 0)) > 0.002 || timeNow - (lastUpdateTime.current || 0) > 0.03)) {
+    if (onUpdateLabels && groupRef.current && isLabelPhase && (Math.abs(p - (lastUpdateProgress.current || 0)) > 0.003 || timeNow - (lastUpdateTime.current || 0) > 0.04)) {
       lastUpdateProgress.current = p;
       lastUpdateTime.current = timeNow;
 
@@ -502,7 +506,6 @@ export function CableModel({
     }
   });
 
-  // Base scale of 0.68 (or 0.55 on mobile) guarantees full, comfortable visibility without cropping
   const baseScale = isMobile ? 0.52 : 0.68;
 
   return (
