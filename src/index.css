@@ -5,6 +5,14 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --background: #06080c;
+    --foreground: #e9edf3;
+    --graphite: #0b0e13;
+    --silver: #c9d0d8;
+    --copper: #e8843a;
+    --copper-light: #ffb46b;
+    --volt: #3d8bff;
+    --font-display: "Barlow Condensed", sans-serif;
   }
   
   html.lenis, html.lenis body {
@@ -28,8 +36,8 @@
   }
 
   body {
-    background-color: #07090B;
-    color: #F5F5F5;
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: 'Inter', sans-serif;
   }
 
@@ -38,43 +46,134 @@
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #07090B;
+    background: #06080c;
   }
   ::-webkit-scrollbar-thumb {
     background: #1B222C;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #168CFF;
+    background: var(--copper);
   }
 }
 
-/* Technical typography & accents */
+/* Typography utilities */
 .font-display {
-  font-family: 'Syne', 'Inter', sans-serif;
+  font-family: var(--font-display);
 }
 
-.font-mono-tech {
-  font-family: 'JetBrains Mono', monospace;
+.eyebrow {
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--copper-light);
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
 }
 
-/* Engineering blueprint subtle lines */
+.eyebrow:before {
+  content: "";
+  background: linear-gradient(90deg, var(--copper-light), transparent);
+  width: 2.5rem;
+  height: 1px;
+}
+
+.text-metal {
+  color: transparent;
+  background: linear-gradient(#fff 0%, #dfe4ea 45%, #8d96a1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-metal-copper {
+  color: transparent;
+  background: linear-gradient(#ffe0bd 0%, #ffad62 40%, #c85a1c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-copper-gradient {
+  color: transparent;
+  background: linear-gradient(100deg, #ffd2a1 0%, #ff9d4d 35%, #d9631f 70%, #ffb46b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Luxury Industrial Buttons */
+.btn-primary, .btn-ghost {
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s, border-color 0.4s, box-shadow 0.6s;
+  display: inline-flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  color: #0a0b0d;
+  background: linear-gradient(#ffcf9a 0%, #f59a4c 55%, #d96d27 100%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.5), 0 18px 50px -18px rgba(255, 140, 60, 0.75);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.5), 0 24px 60px -16px rgba(255, 140, 60, 0.95);
+  filter: brightness(1.08);
+}
+
+.btn-ghost {
+  color: #fff;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-sweep:after {
+  content: "";
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
+  animation: 4.5s cubic-bezier(0.65, 0, 0.35, 1) infinite sweep;
+  position: absolute;
+  inset: 0;
+  transform: translate(-120%);
+}
+
+@keyframes sweep {
+  0%, 55% { transform: translate(-120%); }
+  100% { transform: translate(120%); }
+}
+
+@keyframes cue {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(260%); }
+}
+
+.scroll-cue {
+  animation: 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite cue;
+}
+
+.hero-glow {
+  filter: blur(8px);
+  background: radial-gradient(circle, rgba(232, 238, 245, 0.18) 0%, rgba(201, 208, 216, 0.1) 22%, rgba(232, 132, 58, 0.08) 42%, transparent 68%);
+}
+
+/* Subtle engineering grid */
 .bg-grid-pattern {
   background-size: 60px 60px;
   background-image: 
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-}
-
-.bg-radial-gradient {
-  background: radial-gradient(circle at 50% 50%, rgba(22, 140, 255, 0.05) 0%, transparent 70%);
-}
-
-/* Glow effects */
-.glow-blue {
-  box-shadow: 0 0 35px -5px rgba(22, 140, 255, 0.35);
-}
-
-.glow-orange {
-  box-shadow: 0 0 35px -5px rgba(255, 122, 24, 0.35);
 }

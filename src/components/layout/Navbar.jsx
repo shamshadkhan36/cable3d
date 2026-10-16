@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ArrowUpRight, Shield, Zap } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
-export function Navbar({ onQuoteClick }) {
+export function Navbar({ onOpenConsultation }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -9,17 +9,16 @@ export function Navbar({ onQuoteClick }) {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navLinks = [
-    { name: 'ABOUT', href: '#about', num: '01' },
-    { name: 'PRODUCTS', href: '#products', num: '02' },
-    { name: 'ANATOMY', href: '#construction', num: '03' },
-    { name: 'INDUSTRIES', href: '#industries', num: '04' },
-    { name: 'QUALITY', href: '#quality', num: '05' },
-    { name: 'FACILITIES', href: '#manufacturing', num: '06' }
+    { name: 'Engineering', href: '#exploded' },
+    { name: 'Applications', href: '#environments' },
+    { name: 'Products', href: '#products' },
+    { name: 'About', href: '#top' },
+    { name: 'Contact', href: '#contact' },
   ];
 
   const handleLinkClick = (e, href) => {
@@ -32,100 +31,126 @@ export function Navbar({ onQuoteClick }) {
   };
 
   return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-[#07090B]/90 backdrop-blur-md border-b border-[#1A222D] py-3.5'
-          : 'bg-transparent py-5 sm:py-6'
+          ? 'bg-[#06080c]/90 backdrop-blur-md border-b border-white/10 shadow-lg'
+          : 'bg-transparent border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 flex items-center justify-between">
-        {/* Brand Logo */}
+      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
+        {/* Brand Logo & Name */}
         <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className="flex items-center gap-3 group"
+          href="#top"
+          onClick={(e) => handleLinkClick(e, '#top')}
+          className="group flex items-center gap-3"
+          aria-label="Shree Vishwakarma Wires & Cables home"
         >
-          <div className="w-7 h-7 border-2 border-[#168CFF] group-hover:border-white transition-colors flex items-center justify-center bg-[#07090B]">
-            <div className="w-2.5 h-2.5 bg-[#FF7A18] group-hover:bg-[#168CFF] transition-colors" />
-          </div>
-          <div>
-            <span className="font-display font-black text-lg sm:text-xl tracking-wider text-white uppercase block leading-none">
-              NEXOR
+          <svg viewBox="0 0 48 48" className="h-11 w-11 shrink-0" aria-hidden="true">
+            <defs>
+              <linearGradient id="nav-logo-cu" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#ffd2a1" />
+                <stop offset="55%" stopColor="#e8843a" />
+                <stop offset="100%" stopColor="#9c3f0f" />
+              </linearGradient>
+            </defs>
+            <circle cx="24" cy="24" r="22.5" fill="none" stroke="url(#nav-logo-cu)" strokeWidth="1.5" />
+            <circle cx="24" cy="24" r="17" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1" />
+            <circle cx="32.50" cy="24.00" r="3.6" fill="url(#nav-logo-cu)" />
+            <circle cx="28.25" cy="31.36" r="3.6" fill="url(#nav-logo-cu)" />
+            <circle cx="19.75" cy="31.36" r="3.6" fill="url(#nav-logo-cu)" />
+            <circle cx="15.50" cy="24.00" r="3.6" fill="url(#nav-logo-cu)" />
+            <circle cx="19.75" cy="16.64" r="3.6" fill="url(#nav-logo-cu)" />
+            <circle cx="28.25" cy="16.64" r="3.6" fill="url(#nav-logo-cu)" />
+            <circle cx="24" cy="24" r="3.6" fill="#3d8bff" />
+          </svg>
+          <span className="leading-none">
+            <span className="block font-display text-2xl font-extrabold tracking-[0.12em] text-white">
+              VISHWAKARMA
             </span>
-            <span className="font-mono-tech text-[8px] tracking-widest text-[#9CA3AF] uppercase block mt-0.5">
-              INDUSTRIAL CABLE
+            <span className="mt-1 block text-[10px] font-medium tracking-[0.42em] text-[#ffb46b]/90">
+              WIRES & CABLES · EST. 1968
             </span>
-          </div>
+          </span>
         </a>
 
-        {/* Desktop Nav Links */}
-        <div className="hidden lg:flex items-center gap-8">
+        {/* Center Desktop Links */}
+        <ul className="hidden items-center gap-9 lg:flex">
           {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              onClick={(e) => handleLinkClick(e, link.href)}
-              className="group flex items-center gap-1.5 text-xs font-mono-tech tracking-wider text-[#9CA3AF] hover:text-white transition-colors"
-            >
-              <span className="text-[9px] text-[#168CFF] opacity-60 group-hover:opacity-100 transition-opacity">
-                {link.num}
-              </span>
-              <span>{link.name}</span>
-            </a>
+            <li key={link.name}>
+              <a
+                href={link.href}
+                onClick={(e) => handleLinkClick(e, link.href)}
+                className="relative text-sm font-medium tracking-wide text-white/75 transition-colors hover:text-white after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-0 after:bg-[#e8843a] after:transition-all hover:after:w-full"
+              >
+                {link.name}
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        {/* Right Action */}
-        <div className="hidden sm:flex items-center gap-4">
-          <button
-            onClick={onQuoteClick}
-            className="px-5 py-2.5 bg-[#0D1219] hover:bg-[#168CFF] text-[#F5F5F5] hover:text-white border border-[#2A3644] hover:border-[#168CFF] font-mono-tech text-xs tracking-wider uppercase font-semibold transition-all duration-300 flex items-center gap-2 group"
+        {/* Right CTA / Phone */}
+        <div className="hidden items-center gap-5 lg:flex">
+          <a
+            href="tel:+911800000000"
+            className="text-sm font-medium text-white/60 hover:text-white transition-colors"
           >
-            <span>REQUEST QUOTE</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-[#168CFF] group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+            1800-000-000
+          </a>
+          <button
+            onClick={onOpenConsultation}
+            className="rounded-full bg-gradient-to-r from-[#ff9d4d] to-[#d9631f] px-5 py-2.5 text-sm font-semibold text-black shadow-[0_0_30px_-6px_rgba(255,140,60,0.7)] transition-all hover:brightness-110 active:scale-95"
+          >
+            Technical Consultation
           </button>
         </div>
 
         {/* Mobile Hamburger Button */}
         <button
+          type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 text-[#9CA3AF] hover:text-white focus:outline-none"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white lg:hidden"
+          aria-label="Open menu"
         >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
-      </div>
+      </nav>
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#07090B] border-b border-[#1A222D] px-6 py-6 space-y-4 animate-in slide-in-from-top-4 duration-200">
-          {navLinks.map((link) => (
+        <div className="border-b border-white/10 bg-[#06080c]/95 backdrop-blur-xl px-6 py-6 space-y-4 lg:hidden animate-in slide-in-from-top-2 duration-200">
+          <ul className="space-y-3">
+            {navLinks.map((link) => (
+              <li key={link.name}>
+                <a
+                  href={link.href}
+                  onClick={(e) => handleLinkClick(e, link.href)}
+                  className="block py-2 text-base font-medium text-white/80 hover:text-[#ffb46b] border-b border-white/5"
+                >
+                  {link.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="pt-2 flex flex-col gap-3">
             <a
-              key={link.name}
-              href={link.href}
-              onClick={(e) => handleLinkClick(e, link.href)}
-              className="flex items-center justify-between text-sm font-mono-tech py-2 text-[#D1D5DB] border-b border-[#141B24]"
+              href="tel:+911800000000"
+              className="text-center text-sm text-white/60 py-2"
             >
-              <span>{link.name}</span>
-              <span className="text-xs text-[#168CFF]">{link.num}</span>
+              Call: 1800-000-000
             </a>
-          ))}
-          <div className="pt-2">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onQuoteClick();
+                if (onOpenConsultation) onOpenConsultation();
               }}
-              className="w-full py-3 bg-[#168CFF] text-white font-mono-tech text-xs uppercase tracking-wider font-semibold"
+              className="w-full rounded-full bg-gradient-to-r from-[#ff9d4d] to-[#d9631f] py-3 text-sm font-semibold text-black shadow-lg"
             >
-              REQUEST A QUOTE
+              Technical Consultation
             </button>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 }
